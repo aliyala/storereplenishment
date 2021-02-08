@@ -6,7 +6,7 @@ namespace StoreReplanishment.Application
 {
     public class OrderService : IOrderService
     {
-        public IEnumerable<Order> ProduceOrder(
+        public IList<Order> ProduceOrder(
             List<Product> products,
             List<BatchSize> batchSizes,
             List<ProductBatchSize> productBatchSizes,
