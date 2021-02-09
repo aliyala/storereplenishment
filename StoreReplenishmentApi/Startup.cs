@@ -27,7 +27,10 @@ namespace StoreReplenishmentApi
         {
             services.AddControllers();
             services.AddTransient<IOrderService, OrderService>();
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(setup =>
+            {
+                setup.UseAllOfToExtendReferenceSchemas();
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
