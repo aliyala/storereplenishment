@@ -21,10 +21,10 @@ namespace StoreReplenishmentApi.Controllers
         }
         
         [HttpPost]
-        public IEnumerable<Order> ProduceOrder(OrderRequest orderRequest)
-        {  
-            return _orderService.ProduceOrder(orderRequest.Products, orderRequest.BatchSizes, orderRequest.ProductBatchSizes, 
-                orderRequest.BatchQuantities, orderRequest.BatchSizeSelection);
+        public IEnumerable<Order> ProduceOrders(ProductData productData)
+        {
+            return _orderService.ProduceOrders(productData.Products, productData.BatchSizes, productData.ProductBatchSizes,
+                productData.BatchQuantities, productData.BatchSizeSelection);
         }
     }
 }

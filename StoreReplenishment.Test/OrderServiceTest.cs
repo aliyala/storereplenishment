@@ -1,5 +1,6 @@
 using StoreReplanishment.Application;
 using StoreReplenishment.Domain;
+using System;
 using System.Collections.Generic;
 using Xunit;
 
@@ -7,43 +8,42 @@ namespace StoreReplenishment.Test
 {
     public class OrderServiceTest
     {
-        private readonly List<Product> products = new List<Product>
+        private readonly Product[] products = new Product[]
         {
-            new Product { Code = "P1", Name = "Milk", Price = 1.99m },
-            new Product { Code = "P2", Name = "Soure Milk", Price = 2.05m },
-            new Product { Code = "P3", Name = "Cream", Price = 3.59m },
-            new Product { Code = "P4", Name = "Yoghurt", Price = 4.99m },
-            new Product { Code = "P5", Name = "Buttermilk", Price = 3.1m }
+            new Product("P1", "Milk", 1.99m),
+            new Product("P2", "Soure Milk", 2.05m),
+            new Product("P3", "Cream", 3.59m),
+            new Product("P4", "Yoghurt", 4.99m),
+            new Product("P5", "Buttermilk", 3.1m )
         };
 
-        private readonly List<BatchSize> batchSizes = new List<BatchSize>
+        private readonly BatchSize[] batchSizes = new BatchSize[]
         {
-            new BatchSize { Code = "BS1", Size = 20 },
-            new BatchSize { Code = "BS2", Size = 30 },
-            new BatchSize { Code = "BS3", Size = 40 },
-            new BatchSize { Code = "BS4", Size = 50 },
-            new BatchSize { Code = "BS5", Size = 100 },
-            new BatchSize { Code = "BS6", Size = 20 },
-            new BatchSize { Code = "BS7", Size = 50 }
+            new BatchSize("BS1", 20),
+            new BatchSize("BS2", 30),
+            new BatchSize("BS3", 40),
+            new BatchSize("BS4", 50),
+            new BatchSize("BS5", 100),
+            new BatchSize("BS6", 20),
+            new BatchSize("BS7", 50)
         };
 
-        private readonly List<ProductBatchSize> productBatchSizes = new List<ProductBatchSize>
+        private readonly ProductBatchSize[] productBatchSizes = new ProductBatchSize[]
         {
-            new ProductBatchSize { ProductCode = "P1", BatchSizeCode = "BS6" },
-            new ProductBatchSize { ProductCode = "P2", BatchSizeCode = "BS1" },
-            new ProductBatchSize { ProductCode = "P2", BatchSizeCode = "BS2" },
-            new ProductBatchSize { ProductCode = "P2", BatchSizeCode = "BS3" },
-            new ProductBatchSize { ProductCode = "P3", BatchSizeCode = "BS4" },
-            new ProductBatchSize { ProductCode = "P3", BatchSizeCode = "BS5" },
-            new ProductBatchSize { ProductCode = "P5", BatchSizeCode = "BS7" },
+            new ProductBatchSize("P1", "BS6"),
+            new ProductBatchSize("P2", "BS1"),
+            new ProductBatchSize("P2", "BS2"),
+            new ProductBatchSize("P2", "BS3"),
+            new ProductBatchSize("P3", "BS4"),
+            new ProductBatchSize("P3", "BS5"),
+            new ProductBatchSize("P5", "BS7"),
         };
 
-        private readonly List<BatchQuantity> batchQuantities = new List<BatchQuantity>
-        {
-            new BatchQuantity { ProductCode = "P1", Quantity = 20 },
-            new BatchQuantity { ProductCode = "P2", Quantity = 500 },
-            new BatchQuantity { ProductCode = "P3", Quantity = 40 },
-            new BatchQuantity { ProductCode = "P4", Quantity = 234 }
+        private readonly BatchQuantity[] batchQuantities = new BatchQuantity[]        {
+            new BatchQuantity("P1", 20),
+            new BatchQuantity("P2", 500),
+            new BatchQuantity("P3", 40),
+            new BatchQuantity("P4", 234)
         };
 
         [Fact]
@@ -51,19 +51,19 @@ namespace StoreReplenishment.Test
         {
             var expectedOrders = new List<Order>
             {
-                new Order("P1", "BS6", "Milk", 20, 20, 1.99m),
-                new Order("P2", "BS3", "Soure Milk", 40, 500, 2.05m),
-                new Order("P3", "BS5", "Cream", 100, 40, 3.59m),
-                new Order("P4", "BS_GENERATED_P4", "Yoghurt", 1, 234, 4.99m),
-                new Order("P5", "BS7", "Buttermilk", 50, 1, 3.1m)
+                new Order(new Product("P1", "Milk", 1.99m), new BatchSize("BS6", 20), 20),
+                new Order(new Product("P2", "Soure Milk", 2.05m), new BatchSize("BS3", 40), 500),
+                new Order(new Product("P3", "Cream", 3.59m), new BatchSize("BS5", 100), 40),
+                new Order(new Product("P4", "Yoghurt", 4.99m), new BatchSize("BS_GENERATED_P4", 1), 234),
+                new Order(new Product("P5", "Buttermilk", 3.1m), new BatchSize("BS7", 50), 1),
             };
 
             var orderService = new OrderService();
-            var result = orderService.ProduceOrder(products, batchSizes, productBatchSizes, batchQuantities, true);
+            var result = orderService.ProduceOrders(products, batchSizes, productBatchSizes, batchQuantities, true);
 
             Assert.Equal(expectedOrders.Count, result.Count);
 
-            for(var i = 0; i < expectedOrders.Count; i++)
+            for (var i = 0; i < expectedOrders.Count; i++)
             {
                 Assert.Equal(expectedOrders[i].ProductCode, result[i].ProductCode);
                 Assert.Equal(expectedOrders[i].ProductName, result[i].ProductName);
@@ -72,6 +72,57 @@ namespace StoreReplenishment.Test
                 Assert.Equal(expectedOrders[i].BatchQuantity, result[i].BatchQuantity);
                 Assert.Equal(expectedOrders[i].Price, result[i].Price);
             };
+        }
+
+        [Fact]
+        public void ProduceOrderWithMinBatchShouldReturnCorrectData()
+        {
+            var expectedOrders = new List<Order>
+            {
+                new Order(new Product("P1", "Milk", 1.99m), new BatchSize("BS6", 20), 20),
+                new Order(new Product("P2", "Soure Milk", 2.05m), new BatchSize("BS1", 20), 500),
+                new Order(new Product("P3", "Cream", 3.59m), new BatchSize("BS4", 50), 40),
+                new Order(new Product("P4", "Yoghurt", 4.99m), new BatchSize("BS_GENERATED_P4", 1), 234),
+                new Order(new Product("P5", "Buttermilk", 3.1m), new BatchSize("BS7", 50), 1),
+            };
+
+            var orderService = new OrderService();
+            var result = orderService.ProduceOrders(products, batchSizes, productBatchSizes, batchQuantities, false);
+
+            Assert.Equal(expectedOrders.Count, result.Count);
+
+            for (var i = 0; i < expectedOrders.Count; i++)
+            {
+                Assert.Equal(expectedOrders[i].ProductCode, result[i].ProductCode);
+                Assert.Equal(expectedOrders[i].ProductName, result[i].ProductName);
+                Assert.Equal(expectedOrders[i].BatchSizeCode, result[i].BatchSizeCode);
+                Assert.Equal(expectedOrders[i].BatchSize, result[i].BatchSize);
+                Assert.Equal(expectedOrders[i].BatchQuantity, result[i].BatchQuantity);
+                Assert.Equal(expectedOrders[i].Price, result[i].Price);
+            };
+        }
+
+        [Theory()]
+        [InlineData(0, "P123", 45)]
+        [InlineData(-10, "P123", 45)]
+        [InlineData(10, "", 45)]
+        [InlineData(10, "P123", -70)]
+        public void ProduceOrderWithIncorrectDataShouldThrowException(int quantity, string productCode, int batchSize)
+        {
+            var batchQuantities = new BatchQuantity[]
+            {
+                new BatchQuantity(productCode, quantity)
+            };
+
+            var products = new Product[] { new Product(productCode, "name", 5.33m) };
+
+            var batchSizes = new BatchSize[] { new BatchSize("BS123", batchSize) };
+
+            var productBatchSizes = new ProductBatchSize[] { new ProductBatchSize(productCode, "BS123") };
+
+            var orderService = new OrderService();
+            Assert.Throws<ArgumentException>(() => 
+            orderService.ProduceOrders(products, batchSizes, productBatchSizes, batchQuantities, false));
         }
     }
 }

@@ -5,11 +5,11 @@ namespace StoreReplanishment.Application
 {
     public interface IOrderService
     {
-        IList<Order> ProduceOrder(
-            List<Product> products,
-            List<BatchSize> batchSizes,
-            List<ProductBatchSize> productBatchSizes,
-            List<BatchQuantity> batchQuantities,
+        IList<Order> ProduceOrders(
+            Product[] products,
+            BatchSize[] batchSizes,
+            ProductBatchSize[] productBatchSizes,
+            BatchQuantity[] batchQuantities,
             bool batchSizeSelection);
     }
 }
