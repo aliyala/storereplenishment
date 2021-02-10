@@ -2,9 +2,9 @@
 {
     public record ProductBatchSize
     {
-        public string ProductCode { get; set; }
+        public string ProductCode { get; init; }
 
-        public string BatchSizeCode { get; set; }
+        public string BatchSizeCode { get; init; }
 
         public ProductBatchSize(string productCode, string batchSizeCode)
         {
