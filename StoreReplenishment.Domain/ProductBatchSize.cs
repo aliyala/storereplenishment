@@ -1,6 +1,6 @@
 ﻿namespace StoreReplenishment.Domain
 {
-    public class ProductBatchSize
+    public record ProductBatchSize
     {
         public string ProductCode { get; set; }
 

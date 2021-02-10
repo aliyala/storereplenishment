@@ -1,6 +1,6 @@
 ﻿namespace StoreReplenishment.Domain
 {
-    public class BatchQuantity
+    public record BatchQuantity
     {
         public string ProductCode { get; init; }
 

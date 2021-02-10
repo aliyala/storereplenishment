@@ -22,9 +22,10 @@ namespace StoreReplenishment.Domain
             if (product is null) throw new ArgumentNullException(nameof(product));
             if (batch is null) throw new ArgumentNullException(nameof(batch));
 
-            if (batch.Size <= 0 || string.IsNullOrEmpty(batch.Code)) throw new ArgumentException(nameof(batch));
+            if (batch.Size <= 0 || string.IsNullOrEmpty(batch.Code)) 
+                throw new ArgumentException("Batch size should be more than 0 and code should have value", nameof(batch));
             if (product.Price < 0 || string.IsNullOrEmpty(product.Code) || string.IsNullOrEmpty(product.Name)) 
-                throw new ArgumentException(nameof(product));
+                throw new ArgumentException("Product price should be more than 0 and code should have value", nameof(product));
 
             BatchQuantity = quantity;
             BatchSize = batch.Size;
