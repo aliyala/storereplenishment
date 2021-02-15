@@ -2,6 +2,7 @@ using StoreReplanishment.Application;
 using StoreReplenishment.Domain;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace StoreReplenishment.Test
@@ -123,6 +124,233 @@ namespace StoreReplenishment.Test
             var orderService = new OrderService();
             Assert.Throws<ArgumentException>(() => 
             orderService.ProduceOrders(products, batchSizes, productBatchSizes, batchQuantities, false));
+        }
+
+        [Fact]
+        public void ProduceOrderWithAmount_ShouldReturnCombination()
+        {
+            var orderService = new OrderService();
+
+            var product = new Product("P1", "Name", 1.22m);
+            var batchSizes = new BatchSize[] { new BatchSize("BS1", 20), new BatchSize("BS2", 30), new BatchSize("BS3", 40) };
+            var productBatchSizes = new ProductBatchSize[] { 
+                new ProductBatchSize("P1", "BS1"), 
+                new ProductBatchSize("P1", "BS2"), 
+                new ProductBatchSize("P1", "BS3") 
+            };
+
+            var result = orderService.ProduceOrders(product, batchSizes, productBatchSizes, 70).ToList();
+
+            Assert.Equal(2, result.Count);
+            Assert.NotNull(result.SingleOrDefault(r => r.BatchSize == 30));
+            Assert.NotNull(result.SingleOrDefault(r => r.BatchSize == 40));
+        }
+
+        [Fact]
+        public void ProduceOrderWithAmount_ShouldReturnDesiredBatchSize()
+        {
+            var orderService = new OrderService();
+
+            var product = new Product("P1", "Name", 1.22m);
+            var batchSizes = new BatchSize[] { new BatchSize("BS1", 70), new BatchSize("BS2", 30), new BatchSize("BS3", 40) };
+            var productBatchSizes = new ProductBatchSize[] {
+                new ProductBatchSize("P1", "BS1"),
+                new ProductBatchSize("P1", "BS2"),
+                new ProductBatchSize("P1", "BS3")
+            };
+
+            var result = orderService.ProduceOrders(product, batchSizes, productBatchSizes, 70).ToList();
+
+            Assert.Single(result);
+            Assert.NotNull(result.SingleOrDefault(r => r.BatchSize == 70));
+        }
+
+        [Fact]
+        public void ProduceOrderWithAmount_ShouldReturnOneOfCombination()
+        {
+            var orderService = new OrderService();
+
+            var product = new Product("P1", "Name", 1.22m);
+            var batchSizes = new BatchSize[] { 
+                new BatchSize("BS1", 20), 
+                new BatchSize("BS2", 30), 
+                new BatchSize("BS4", 50), 
+                new BatchSize("BS3", 40) };
+            var productBatchSizes = new ProductBatchSize[] {
+                new ProductBatchSize("P1", "BS1"),
+                new ProductBatchSize("P1", "BS2"),
+                new ProductBatchSize("P1", "BS3"),
+                new ProductBatchSize("P1", "BS4")
+            };
+
+            var result = orderService.ProduceOrders(product, batchSizes, productBatchSizes, 70).ToList();
+
+            Assert.Equal(2, result.Count);
+            Assert.NotNull(result.SingleOrDefault(r => r.BatchSize == 50));
+            Assert.NotNull(result.SingleOrDefault(r => r.BatchSize == 20));
+        }
+
+        [Fact]
+        public void ProduceOrderWithAmount_ShouldReturnClosestBatchSize()
+        {
+            var orderService = new OrderService();
+
+            var product = new Product("P1", "Name", 1.22m);
+            var batchSizes = new BatchSize[] {
+                new BatchSize("BS1", 120),
+                new BatchSize("BS2", 30),
+                new BatchSize("BS3", 50),
+                new BatchSize("BS4", 60),
+                new BatchSize("BS5", 80),
+                new BatchSize("BS6", 100) };
+            var productBatchSizes = new ProductBatchSize[] {
+                new ProductBatchSize("P1", "BS1"),
+                new ProductBatchSize("P1", "BS2"),
+                new ProductBatchSize("P1", "BS3"),
+                new ProductBatchSize("P1", "BS4"),
+                new ProductBatchSize("P1", "BS5"),
+                new ProductBatchSize("P1", "BS6")
+            };
+
+            var result = orderService.ProduceOrders(product, batchSizes, productBatchSizes, 70).ToList();
+
+            Assert.Single(result);
+            Assert.NotNull(result.SingleOrDefault(r => r.BatchSize == 80));
+        }
+
+        [Fact]
+        public void ProduceOrderWithAmount_ShouldReturnClosestBatchSizeFromBiggerBatches()
+        {
+            var orderService = new OrderService();
+
+            var product = new Product("P1", "Name", 1.22m);
+            var batchSizes = new BatchSize[] {
+                new BatchSize("BS1", 120),
+                new BatchSize("BS2", 300),
+                new BatchSize("BS3", 500),
+                new BatchSize("BS4", 600),
+                new BatchSize("BS5", 80),
+                new BatchSize("BS6", 100) };
+            var productBatchSizes = new ProductBatchSize[] {
+                new ProductBatchSize("P1", "BS1"),
+                new ProductBatchSize("P1", "BS2"),
+                new ProductBatchSize("P1", "BS3"),
+                new ProductBatchSize("P1", "BS4"),
+                new ProductBatchSize("P1", "BS5"),
+                new ProductBatchSize("P1", "BS6")
+            };
+
+            var result = orderService.ProduceOrders(product, batchSizes, productBatchSizes, 70).ToList();
+
+            Assert.Single(result);
+            Assert.NotNull(result.SingleOrDefault(r => r.BatchSize == 80));
+        }
+
+        [Fact]
+        public void ProduceOrderWithAmount_ShouldReturnCombinationFromThreeBatches()
+        {
+            var orderService = new OrderService();
+
+            var product = new Product("P1", "Name", 1.22m);
+            var batchSizes = new BatchSize[] {
+                new BatchSize("BS1", 120),
+                new BatchSize("BS2", 30),
+                new BatchSize("BS3", 50),
+                new BatchSize("BS4", 15),
+                new BatchSize("BS5", 25),
+                new BatchSize("BS6", 100) };
+            var productBatchSizes = new ProductBatchSize[] {
+                new ProductBatchSize("P1", "BS1"),
+                new ProductBatchSize("P1", "BS2"),
+                new ProductBatchSize("P1", "BS3"),
+                new ProductBatchSize("P1", "BS4"),
+                new ProductBatchSize("P1", "BS5"),
+                new ProductBatchSize("P1", "BS6")
+            };
+
+            var result = orderService.ProduceOrders(product, batchSizes, productBatchSizes, 70).ToList();
+
+            Assert.Equal(3, result.Count);
+            Assert.NotNull(result.SingleOrDefault(r => r.BatchSize == 30));
+            Assert.NotNull(result.SingleOrDefault(r => r.BatchSize == 15));
+            Assert.NotNull(result.SingleOrDefault(r => r.BatchSize == 25));
+        }
+
+        [Fact]
+        public void ProduceOrderWithAmount_ShouldReturnBatchWithSeveralQuantity()
+        {
+            var orderService = new OrderService();
+
+            var product = new Product("P1", "Name", 1.22m);
+            var batchSizes = new BatchSize[] {
+                new BatchSize("BS1", 10),
+                new BatchSize("BS2", 50),
+                new BatchSize("BS3", 100) 
+            };
+            var productBatchSizes = new ProductBatchSize[] {
+                new ProductBatchSize("P1", "BS1"),
+                new ProductBatchSize("P1", "BS2"),
+                new ProductBatchSize("P1", "BS3")
+            };
+
+            var result = orderService.ProduceOrders(product, batchSizes, productBatchSizes, 70).ToList();
+
+            Assert.Single(result);
+            Assert.NotNull(result.SingleOrDefault(r => r.BatchSize == 10));
+            Assert.Equal(7, result.SingleOrDefault(r => r.BatchSize == 10)?.BatchQuantity);
+        }
+
+        [Fact]
+        public void ProduceOrderWithAmount_ShouldReturnClosestCombination()
+        {
+            var orderService = new OrderService();
+
+            var product = new Product("P1", "Name", 1.22m);
+            var batchSizes = new BatchSize[] {
+                new BatchSize("BS1", 20),
+                new BatchSize("BS2", 100),
+                new BatchSize("BS4", 55),
+                new BatchSize("BS3", 110) };
+            var productBatchSizes = new ProductBatchSize[] {
+                new ProductBatchSize("P1", "BS1"),
+                new ProductBatchSize("P1", "BS2"),
+                new ProductBatchSize("P1", "BS3"),
+                new ProductBatchSize("P1", "BS4")
+            };
+
+            var result = orderService.ProduceOrders(product, batchSizes, productBatchSizes, 70).ToList();
+
+            Assert.Equal(2, result.Count);
+            Assert.NotNull(result.SingleOrDefault(r => r.BatchSize == 55));
+            Assert.NotNull(result.SingleOrDefault(r => r.BatchSize == 20));
+        }
+
+        [Fact]
+        public void ProduceOrderWithAmount_ShouldReturnCombinationWithSeveralQuantity()
+        {
+            var orderService = new OrderService();
+
+            var product = new Product("P1", "Name", 1.22m);
+            var batchSizes = new BatchSize[] {
+                new BatchSize("BS1", 60),
+                new BatchSize("BS2", 100),
+                new BatchSize("BS3", 120),
+                new BatchSize("BS4", 30),
+                new BatchSize("BS5", 20) };
+            var productBatchSizes = new ProductBatchSize[] {
+                new ProductBatchSize("P1", "BS1"),
+                new ProductBatchSize("P1", "BS2"),
+                new ProductBatchSize("P1", "BS3"),
+                new ProductBatchSize("P1", "BS4"),
+                new ProductBatchSize("P1", "BS5")
+            };
+
+            var result = orderService.ProduceOrders(product, batchSizes, productBatchSizes, 70).ToList();
+
+            Assert.Equal(2, result.Count);
+            Assert.NotNull(result.SingleOrDefault(r => r.BatchSize == 30));
+            Assert.NotNull(result.SingleOrDefault(r => r.BatchSize == 20));
+            Assert.Equal(2, result.SingleOrDefault(r => r.BatchSize == 20).BatchQuantity);
         }
     }
 }

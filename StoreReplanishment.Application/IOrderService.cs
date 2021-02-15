@@ -11,5 +11,11 @@ namespace StoreReplanishment.Application
             ProductBatchSize[] productBatchSizes,
             BatchQuantity[] batchQuantities,
             bool batchSizeSelection);
+
+        IList<Order> ProduceOrders(
+            Product product,
+            BatchSize[] batchSizes,
+            ProductBatchSize[] productBatchSizes,
+            int amount);
     }
 }
